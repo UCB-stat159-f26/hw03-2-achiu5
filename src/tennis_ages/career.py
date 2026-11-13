@@ -2,25 +2,17 @@
 
 import pandas as pd
 
+from tennis_ages._download import (
+    _download_career_js,
+    _download_player_info,
+    _to_url_name,
+)
+from tennis_ages._parse import _build_career_table
+
 
 def get_player_career(player_name: str) -> pd.DataFrame:
-    """Return one row per career singles match for `player_name`.
-
-    Parameters
-    ----------
-    player_name : str
-        The player's name, e.g. "serena williams", "Serena Williams" or
-        "SerenaWilliams".
-
-    Returns
-    -------
-    pandas.DataFrame
-        One row per match, with the player's age, the opponent's age, their
-        difference, and the match result (W or L).
-
-    Raises
-    ------
-    ValueError
-        If Tennis Abstract has no career file for `player_name`.
-    """
-    raise NotImplementedError
+    """Download a player's career singles matches from Tennis Abstract."""
+    url_name = _to_url_name(player_name)
+    js_text = _download_career_js(url_name)
+    full_name, player_dob = _download_player_info(url_name)
+    return _build_career_table(js_text, player_dob, full_name)
