@@ -1,9 +1,10 @@
 """Tests for the private download helpers. The network is never used."""
 
+import pandas as pd
 import pytest
 
 from tennis_ages import _download, get_player_career
-from tennis_ages._download import _to_url_name
+from tennis_ages._download import _download_player_info, _to_url_name
 
 
 @pytest.mark.parametrize(
@@ -31,3 +32,15 @@ def test_unknown_player_raises_meaningful_error(monkeypatch):
     with pytest.raises(ValueError, match="No Tennis Abstract career data found for 'GastonSanchez'"):
         get_player_career("GastonSanchez")
     assert requested == ["https://www.tennisabstract.com/jsmatches/GastonSanchezCareer.js"]
+
+
+def test_download_player_info_reads_name_and_dob(monkeypatch):
+    fake_page = (
+        "var nameparam = 'SerenaWilliams';\n"
+        "var fullname = 'Serena Williams';\n"
+        "var dob = 19810926;\n"
+    )
+    monkeypatch.setattr(_download, "_fetch_text", lambda url: fake_page)
+    full_name, dob = _download_player_info("SerenaWilliams")
+    assert full_name == "Serena Williams"
+    assert dob == pd.Timestamp("1981-09-26")
