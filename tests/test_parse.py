@@ -1,5 +1,7 @@
 """Tests for the private parsing helpers, run on the mock career JS files."""
 
+import json
+
 import pandas as pd
 import pytest
 
@@ -58,3 +60,12 @@ def test_build_career_table_columns_and_ages(female_js):
     first = career.iloc[0]
     assert first["player_age"] == pytest.approx(14.09, abs=0.01)
     assert first["age_difference"] == pytest.approx(-4.68, abs=0.01)
+
+
+def test_build_career_table_drops_unplottable_matches(female_js):
+    rows = _extract_match_rows(female_js)
+    rows[1][4] = ""    # no W/L result (e.g. a walkover)
+    rows[2][16] = ""   # no opponent date of birth
+    js_text = "var morematchmx = " + json.dumps(rows)
+    career = _build_career_table(js_text, pd.Timestamp("1981-09-26"), "Serena Williams")
+    assert career["opponent"].tolist() == ["Anne Miller"]
